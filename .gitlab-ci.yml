@@ -1,0 +1,35 @@
+image: mcr.microsoft.com/playwright/java:v1.44.0-jammy # openjdk:17-jdk-slim
+
+variables:
+  ALLURE_RESULTS: "./build/allure-results/"
+  ALLURE_LAUNCH_NAME: "${CI_PROJECT_NAME}_${CI_COMMIT_SHORT_SHA}_${CI_JOB_STARTED_AT}"
+  ALLURE_JOB_RUN_UID: "${CI_JOB_ID}"
+
+stages:
+  - test
+
+test:
+  stage: test
+  rules:
+    # Launch Job manually, via Cron or trigger from upstream pipeline
+    # 'API' source is preserved for job launch from Allure TestOps
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "api"
+    - when: manual
+  allow_failure: true
+  script:
+    - apt-get update && apt-get install -y findutils wget
+    - wget https://github.com/allure-framework/allurectl/releases/latest/download/allurectl_linux_amd64 -O ./allurectl
+    - chmod +x ./allurectl
+    - ./allurectl auth login --endpoint $ALLURE_ENDPOINT --token $ALLURE_TOKEN
+    # https://docs.qameta.io/allure-testops/ecosystem/allurectl/#example-1-1
+    - ./allurectl watch  --ignore-passed-test-attachments --launch-name "$ALLURE_LAUNCH_NAME" --job-run-uid "$ALLURE_JOB_RUN_UID" --results "$ALLURE_RESULTS" -- ./gradlew clean test
+  #  after_script:
+  #    - ./allurectl upload --ignore-passed-test-attachments --launch-name "$ALLURE_LAUNCH_NAME" --job-run-uid "$ALLURE_JOB_RUN_UID" $ALLURE_RESULTS
+
+  artifacts:
+    when: always
+    paths:
+      - ./build/allure-results
+    expire_in: 1 day
