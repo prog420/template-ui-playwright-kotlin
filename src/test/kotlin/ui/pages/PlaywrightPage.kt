@@ -12,6 +12,8 @@ class PlaywrightPage(page: Page, ): BasePage(page) {
     internal val getStartedBtn: Locator = page.locator("a.getStarted_Sjon")
     @PublishedApi
     internal val apiBtn: Locator = page.locator("a.navbar__link[href='/docs/api/class-playwright']")
+    @PublishedApi
+    internal val someBtn: Locator = page.locator("a.some-class")
 
     @Step("Click 'Get Started' Button")
     fun openDocumentationIntro() {

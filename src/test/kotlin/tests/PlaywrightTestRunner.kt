@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
 import modules.assertions.Assertions.Companion.assertThat
+import org.junit.jupiter.api.assertAll
 
 
 @Epic("System")
@@ -21,15 +22,21 @@ class PlaywrightTestRunner: BaseTestRunner() {
     fun testOneSuccess() {
         pwPage.open()
         pwPage.openDocumentationIntro()
-        assertThat(pw.page).hasTitle("Installation | Playwright")
+        assertAll(
+            { assertThat(pwPage.someBtn).describedAs("Custom isVisible() Description").isVisible() },
+            { assertThat(pwPage.apiBtn).describedAs("Custom isClickable() Description").isClickable() },
+            { assertThat(pwPage.someBtn).isClickable() }
+        )
     }
 
     @Test
     @DisplayName("Test Two")
     fun testTwoFail() {
+        val expectedTitle = "Installation | Test Two"
         pwPage.open()
         pwPage.openDocumentationIntro()
-        assertThat(pw.page).hasTitle("Installation | Test Two")
+        assertThat(pwPage.getStartedBtn).hasValidationMessage("Some message")
+        assertThat(pw.page).hasTitle(expectedTitle)
     }
 
     @Test
